@@ -1,0 +1,87 @@
+Select DISTINCT masterid,practiceid,state,custid,practicename,week,month,quarter,year,patientid,trn_date,procedure_code,Code_Category,production,description,country 
+from (select allpracticenames.masterid,allpracticenames.practiceid as practiceid,practicename,QUARTER(procdate)as quarter,year(procdate) as year,
+        month(procdate)as month,week(procdate) as week,
+        patid as patientid,allpracticenames.custid, 
+        amount as production, ltypedef as description,
+        case when allpracticenames.state='GEORGIA' then 'GA' 
+         when allpracticenames.state='RE' then 'FL' 
+         when allpracticenames.state='D.C.' then 'DC' 
+         when allpracticenames.state='DEXTERMI' then 'MI' 
+         when allpracticenames.state='TX/TX' then 'TX' 
+         when allpracticenames.state='PHILADELPHIAPA' then 'PA' 
+         when allpracticenames.state='DUNMOREPA' then 'PA' 
+         when allpracticenames.state='LOSLUNASNM' then 'PA' 
+         when allpracticenames.state='LUBBOCKTX' then 'PA' 
+         when allpracticenames.state='PR' then 'PR' 
+         when allpracticenames.state='US' then 'NaN'
+         when allpracticenames.state='DEER' then 'AB' 
+         when allpracticenames.state='ONMEE' then 'ON' 
+         when allpracticenames.state='ONTARIO' then 'ON' 
+         when allpracticenames.state='ONTARIOMPP' then 'ON' 
+         when allpracticenames.state='QUEBECHZIB' then 'QC' 
+         else allpracticenames.state end as state,
+         case when allpracticenames.state in 
+         ('AK','AL','AR','AZ','CA','CO','CT','D.C.','DC','DE','FL','RE','GA','GEORGIA','HI','IA','ID','IL','IN','KS','KY','LA','MA', 
+         'MD','ME','MI','DEXTERMI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','PHILADELPHIAPA','RI', 
+         'SC','SD','TN','TX','TX/TX','UT','VA','VT','WA','WI','WV','WY','DUNMOREPA','LOSLUNASNM','LUBBOCKTX','PR','US') then 'USA'
+         when allpracticenames.state in 
+         ('AB','BC','DEER','MB','NS','ON','ONMEE','ONTARIO','ONTARIOMPP','QUEBECHZIB','SK','QC','NB','PE','NL') then 'Canada' END AS country ,procdate as trn_date, adacode as procedure_code,'SKKAOrtho' as Code_Category
+        from proclog
+        inner join allpracticenames on proclog.practiceid=allpracticenames.practiceid and 
+        proclog.custid=allpracticenames.custid and 
+        proclog.masterid=allpracticenames.masterid
+        inner join (Select distinct proclog.masterid, proclog.practiceid, proclog.custid from proclog
+                     where procdate>=date_add('day',-30,current_date) and proctype='C' and amount>0  and
+                    ( LTYPEDEF LIKE '%PATTERSON%' OR
+                    LTYPEDEF LIKE '%INTRAORAL-P.A. X-RAY FILM%' OR
+                    (LTYPEDEF LIKE '%ORAL RINSE%' AND LTYPEDEF LIKE '%CHLORHEXIDINE GLUCONATE%') OR
+                    LTYPEDEF LIKE '%SODIUM FLUORIDE VARNISH%' OR
+                    (LTYPEDEF LIKE '%MOUTH PROP%'  AND LTYPEDEF NOT LIKE '%HALF%' AND LTYPEDEF NOT LIKE '%1/2%' ) OR
+                    LTYPEDEF LIKE '%PANORAMIC X-RAY FILM%' OR 
+                    LTYPEDEF LIKE '%AFFORDABLE DENTAL%' OR 
+                    LTYPEDEF LIKE '%DIXIE%' OR
+                    LTYPEDEF LIKE '%PLOTKA%' OR
+                    LTYPEDEF LIKE '%GC AMERICA%' OR
+                    LTYPEDEF LIKE '%GLO SCIENCE%' OR
+                    LTYPEDEF LIKE '%IVOCLAR%' OR 
+                    LTYPEDEF LIKE '%NATURAL DENTIST%' OR
+                    LTYPEDEF LIKE '%PREVENTIVE DENTAL%' OR
+                    LTYPEDEF LIKE '%PROBIORA HEALTH%' OR
+                    LTYPEDEF LIKE '%PLATYPUS%' OR
+                    LTYPEDEF LIKE '%SHOCK DOCTOR%' OR
+                    LTYPEDEF LIKE '%SPA DENT%' OR
+                    LTYPEDEF LIKE '%SINSATIONAL SMILE%' OR 
+                    LTYPEDEF LIKE '%SELECT DENTAL%' OR 
+                    LTYPEDEF LIKE '%TCS%' OR
+                    LTYPEDEF LIKE '%ZEST ANCHORS%' OR
+                    LTYPEDEF LIKE '%3M %'))  as a1
+                    on proclog.practiceid=a1.practiceid and proclog.custid=a1.custid and proclog.masterid=a1.masterid
+                    where procdate>= date '2017-01-01' and procdate<= current_date  and proctype='C' and amount>0  and ( allpracticenames.state in 
+                     ('AK','AL','AR','AZ','CA','CO','CT','D.C.','DC','DE','FL','RE','GA','GEORGIA','HI','IA','ID','IL','IN','KS','KY','LA','MA', 
+                     'MD','ME','MI','DEXTERMI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','PHILADELPHIAPA','RI', 
+                     'SC','SD','TN','TX','TX/TX','UT','VA','VT','WA','WI','WV','WY','DUNMOREPA','LOSLUNASNM','LUBBOCKTX','PR','US') or
+                     allpracticenames.state in 
+                     ('AB','BC','DEER','MB','NS','ON','ONMEE','ONTARIO','ONTARIOMPP','QUEBECHZIB','SK','QC','NB','PE','NL')) and
+                    (LTYPEDEF LIKE '%PATTERSON%' OR
+                    LTYPEDEF LIKE '%INTRAORAL-P.A. X-RAY FILM%' OR
+                    (LTYPEDEF LIKE '%ORAL RINSE%' AND LTYPEDEF LIKE '%CHLORHEXIDINE GLUCONATE%') OR
+                    LTYPEDEF LIKE '%SODIUM FLUORIDE VARNISH%' OR
+                    (LTYPEDEF LIKE '%MOUTH PROP%'  AND LTYPEDEF NOT LIKE '%HALF%' AND LTYPEDEF NOT LIKE '%1/2%' ) OR
+                    LTYPEDEF LIKE '%PANORAMIC X-RAY FILM%' OR 
+                    LTYPEDEF LIKE '%AFFORDABLE DENTAL%' OR 
+                    LTYPEDEF LIKE '%DIXIE%' OR
+                    LTYPEDEF LIKE '%PLOTKA%' OR
+                    LTYPEDEF LIKE '%GC AMERICA%' OR
+                    LTYPEDEF LIKE '%GLO SCIENCE%' OR
+                    LTYPEDEF LIKE '%IVOCLAR%' OR 
+                    LTYPEDEF LIKE '%NATURAL DENTIST%' OR
+                    LTYPEDEF LIKE '%PREVENTIVE DENTAL%' OR
+                    LTYPEDEF LIKE '%PROBIORA HEALTH%' OR
+                    LTYPEDEF LIKE '%PLATYPUS%' OR
+                    LTYPEDEF LIKE '%SHOCK DOCTOR%' OR
+                    LTYPEDEF LIKE '%SPA DENT%' OR
+                    LTYPEDEF LIKE '%SINSATIONAL SMILE%' OR 
+                    LTYPEDEF LIKE '%SELECT DENTAL%' OR 
+                    LTYPEDEF LIKE '%TCS%' OR
+                    LTYPEDEF LIKE '%ZEST ANCHORS%' OR
+                    LTYPEDEF LIKE '%3M %'))
